@@ -1,0 +1,9 @@
+{"timestamp": "2026-08-08T11:26:02.968256+00:00", "event_type": "errors", "action": "API_ERROR", "api": "dexscreener", "path": "/token-boosts/latest/v1", "status": 404, "latency_ms": 210.62827110290527}
+{"timestamp": "2026-08-08T11:26:02.969262+00:00", "event_type": "errors", "action": "DISCOVERY_FAILED", "reason": "No tokens found"}
+{"timestamp": "2026-08-08T11:38:15.786184+00:00", "event_type": "errors", "action": "API_ERROR", "api": "dexscreener", "path": "/token-boosts/latest/v1", "status": 404, "latency_ms": 214.0958309173584}
+{"timestamp": "2026-08-08T11:38:20.890608+00:00", "event_type": "errors", "action": "API_ERROR", "api": "dexscreener", "path": "/search?q=solana", "status": 400, "latency_ms": 307.5120449066162}
+{"timestamp": "2026-08-08T11:39:26.703152+00:00", "event_type": "errors", "action": "API_ERROR", "api": "dexscreener", "path": "/token-boosts/latest/v1", "status": 404, "latency_ms": 58.53581428527832}
+{"timestamp": "2026-08-08T11:39:31.820614+00:00", "event_type": "errors", "action": "API_ERROR", "api": "dexscreener", "path": "/search?q=solana", "status": 400, "latency_ms": 161.2875461578369}
+{"timestamp": "2026-08-08T11:43:11.694751+00:00", "event_type": "errors", "action": "API_ERROR", "api": "birdeye", "path": "/public/txs/token", "status": 404, "latency_ms": 180.91535568237305}
+{"timestamp": "2026-08-08T11:43:16.652617+00:00", "event_type": "errors", "action": "API_ERROR", "api": "birdeye", "path": "/public/txs/token", "status": 404, "latency_ms": 78.66311073303223}
+{"timestamp": "2026-08-08T11:43:21.649426+00:00", "event_type": "errors", "action": "API_ERROR", "api": "birdeye", "path": "/public/txs/token", "status": 404, "latency_ms": 78.38869094848633}

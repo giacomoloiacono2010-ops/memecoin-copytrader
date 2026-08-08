@@ -1,0 +1,117 @@
+# ============================================================
+# MEMECOIN COPYTRADER - PAPER TRADING CONFIGURATION
+# ============================================================
+# CRITICAL: This system operates ONLY in paper trading mode.
+# No real funds, no real transactions, no real keys.
+# ============================================================
+
+# --- PAPER ACCOUNT ---
+paper_account:
+  name: "HERMES_PAPER_ACCOUNT_01"
+  initial_balance_usd: 25.0
+  mode: "paper_trading"
+  use_real_funds: false
+  send_real_transactions: false
+
+# --- EXECUTION ---
+execution:
+  delay_ms: 200
+  max_signal_age_ms: 800
+  slippage_model: "linear"          # linear | fixed
+  default_slippage_bps: 50
+
+# --- RISK MANAGEMENT ---
+risk:
+  max_risk_per_trade_pct: 0.5       # % of portfolio per single trade
+  max_total_exposure_pct: 20.0      # % of portfolio total exposure
+  max_open_positions: 5
+  max_trades_per_hour: 10
+  max_daily_loss_pct: 3.0           # blocks trading for the day
+  max_drawdown_pct: 10.0            # triggers kill switch
+  max_slippage_bps: 150             # 1.5%
+  max_price_impact_bps: 200         # 2.0%
+  min_liquidity_usd: 20000.0
+  max_gas_per_trade_usd: 5.0
+  allow_leverage: false
+  allow_short: false
+  stop_loss_pct: 15.0               # -15% from entry
+  trailing_take_profit_pct: 50.0    # activate trailing above +50%
+  warning_drawdown_pct: 8.0         # warning before kill
+
+# --- WALLET DISCOVERY ---
+wallet_discovery:
+  max_wallets_to_copy: 10
+  min_trades_per_wallet: 20
+  min_win_rate_pct: 45.0
+  min_profit_factor: 1.4
+  max_single_token_profit_pct: 60.0
+  rebalance_interval_hours: 4
+  top_tokens_scan_count: 20
+  top_traders_per_token: 50
+
+# --- WALLET SCORING ---
+wallet_scoring:
+  weights:
+    profit_consistency: 0.25
+    diversification: 0.15
+    temporal_pattern: 0.15
+    position_sizing: 0.15
+    wallet_age: 0.10
+    relative_volume: 0.20
+  min_score: 60
+  bot_detection:
+    max_trades_per_hour: 50
+    identical_pattern_threshold: 0.95
+
+# --- TOKEN SAFETY ---
+token_safety:
+  min_safety_score: 65
+  max_top10_holders_pct: 40.0
+  min_liquidity_usd: 20000.0
+  max_token_age_hours: 72
+  require_mint_revoked: true
+  require_freeze_revoked: true
+  min_burned_liquidity_pct: 50.0
+
+# --- API CONFIGURATION (READ-ONLY ONLY) ---
+api:
+  # Solana RPC - public, read-only
+  solana_rpc:
+    url: "https://api.mainnet-beta.solana.com"
+    timeout_seconds: 10
+    max_retries: 3
+
+  # Birdeye - free tier, read-only
+  birdeye:
+    base_url: "https://public-api.birdeye.so"
+    api_key: ""                      # Optional: free tier works without key
+    rate_limit_per_second: 0.5       # 1 request every 2 seconds
+    cache_ttl_seconds: 5
+
+  # DexScreener - no key required
+  dexscreener:
+    base_url: "https://api.dexscreener.com/latest/dex"
+    rate_limit_per_second: 0.2       # 1 request every 5 seconds
+    cache_ttl_seconds: 30
+
+# --- MONITORING ---
+monitoring:
+  poll_interval_seconds: 2
+  health_check_interval_seconds: 30
+  report_interval_hours: 1
+  test_duration_hours: 72
+  log_level: "DEBUG"
+  kill_switch_check_seconds: 1
+  graceful_shutdown_timeout_seconds: 5
+
+# --- CHAINS ---
+chains:
+  primary: "solana"
+  enabled:
+    - "solana"
+
+# --- OUTPUT ---
+output:
+  reports_dir: "reports"
+  logs_dir: "logs"
+  data_dir: "data"
