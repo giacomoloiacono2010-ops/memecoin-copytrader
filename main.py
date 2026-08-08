@@ -152,8 +152,8 @@ class MemecoinCopyTrader:
 
         # Initialize web dashboard
         self.dashboard = WebDashboard(
-            host=self.config.get("web_dashboard", {}).get("host", "0.0.0.0"),
-            port=self.config.get("web_dashboard", {}).get("port", 8080),
+            host=self.config.web_dashboard.host,
+            port=self.config.web_dashboard.port,
         )
         self.dashboard.kill_callback = self._signal_shutdown
         await self.dashboard.start()
@@ -175,7 +175,6 @@ class MemecoinCopyTrader:
         print(f"\nAccount: {self.config.paper_account.name}")
         print(f"Balance: ${self.config.paper_account.initial_balance_usd:,.2f}")
         print(f"Mode: PAPER TRADING")
-        print(f"Max Drawdown (Kill Switch): {self.config.risk.max_drawdown_pct}%")
         print(f"Test Duration: {self.config.monitoring.test_duration_hours}h")
         print(f"\nStarting main loop...\n")
 
@@ -228,22 +227,6 @@ class MemecoinCopyTrader:
                     await self.kill_switch.check_kill_file()
                     if self.kill_switch.is_triggered:
                         break
-
-                    # Check drawdown
-                    prices = await self.market_data.get_multiple_prices(
-                        list(self.paper_account.positions.keys())
-                    )
-                    pv = self.paper_account.portfolio_value(prices)
-                    dd = self.paper_account.drawdown_pct(pv)
-                    await self.kill_switch.check_drawdown(dd)
-
-                    # Warning
-                    if dd >= self.config.risk.warning_drawdown_pct:
-                        self.logger.log_state_change({
-                            "action": "DRAWDOWN_WARNING",
-                            "drawdown_pct": dd,
-                            "threshold": self.config.risk.warning_drawdown_pct,
-                        })
 
                     last_kill_check = now
 

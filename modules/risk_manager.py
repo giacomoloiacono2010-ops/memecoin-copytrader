@@ -127,27 +127,7 @@ class RiskManagerService:
                 f"Hourly limit {risk.max_trades_per_hour} reached"
             )
 
-        # ---- RULE 6: Max daily loss ----
-        daily_pnl = self.paper_account.daily_pnl_pct(current_value)
-        if daily_pnl < -risk.max_daily_loss_pct:
-            # Block trading for rest of day
-            self._blocked_until = self._end_of_day()
-            return self._reject(
-                qty, "MAX_DAILY_LOSS",
-                f"Daily loss {daily_pnl:.2f}% exceeds "
-                f"{risk.max_daily_loss_pct}% limit"
-            )
-
-        # ---- RULE 7: Max drawdown (KILL SWITCH) ----
-        drawdown = self.paper_account.drawdown_pct(current_value)
-        if drawdown >= risk.max_drawdown_pct:
-            return self._reject(
-                qty, "DRAWDOWN_KILL_SWITCH",
-                f"Drawdown {drawdown:.2f}% >= {risk.max_drawdown_pct}% "
-                f"KILL SWITCH TRIGGERED"
-            )
-
-        # ---- RULE 8: Liquidity check ----
+        # ---- RULE 6: Liquidity check ----
         if liquidity_usd > 0 and liquidity_usd < risk.min_liquidity_usd:
             return self._reject(
                 qty, "INSUFFICIENT_LIQUIDITY",

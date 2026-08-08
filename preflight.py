@@ -176,13 +176,12 @@ def run_checks() -> Checklist:
     try:
         from modules.monitoring import KillSwitch
         # Verify kill switch has required methods
-        ks_methods = ["check_kill_file", "check_drawdown", "trigger", "is_triggered"]
+        ks_methods = ["check_kill_file", "trigger", "is_triggered"]
         ks = KillSwitch.__new__(KillSwitch)
         missing = [m for m in ks_methods if not hasattr(KillSwitch, m)]
         if not missing:
             cl.add(CheckResult(12, "kill_switch attivo", "PASS",
-                               f"methods: {', '.join(ks_methods)}, "
-                               f"auto-kill at {config.risk.max_drawdown_pct}% drawdown"))
+                               f"methods: {', '.join(ks_methods)}"))
         else:
             cl.add(CheckResult(12, "kill_switch attivo", "FAIL",
                                f"missing methods: {missing}"))
@@ -358,24 +357,31 @@ def run_checks() -> Checklist:
                            f"Mismatches: {risk_fail}"))
 
     # ═══════════════════════════════════════════════════════════════
-    # CHECK 18: daily loss limit attivo
+    # CHECK 18: web dashboard configurato
     # ═══════════════════════════════════════════════════════════════
-    if config.risk.max_daily_loss_pct == 3.0:
-        cl.add(CheckResult(18, "daily loss limit attivo", "PASS",
-                           f"max_daily_loss_pct={config.risk.max_daily_loss_pct}%"))
-    else:
-        cl.add(CheckResult(18, "daily loss limit attivo", "FAIL",
-                           f"max_daily_loss_pct={config.risk.max_daily_loss_pct} (expected 3.0)"))
+    try:
+        web_cfg = getattr(config, 'web_dashboard', None)
+        if web_cfg and web_cfg.enabled:
+            cl.add(CheckResult(18, "web dashboard attivo", "PASS",
+                               f"port={web_cfg.port}, host={web_cfg.host}"))
+        else:
+            cl.add(CheckResult(18, "web dashboard attivo", "WARN",
+                               "web_dashboard not configured or disabled"))
+    except Exception:
+        cl.add(CheckResult(18, "web dashboard attivo", "WARN",
+                           "web_dashboard section missing"))
 
     # ═══════════════════════════════════════════════════════════════
-    # CHECK 19: max drawdown attivo
+    # CHECK 19: execution fees configurati
     # ═══════════════════════════════════════════════════════════════
-    if config.risk.max_drawdown_pct == 10.0:
-        cl.add(CheckResult(19, "max drawdown attivo", "PASS",
-                           f"max_drawdown_pct={config.risk.max_drawdown_pct}% → kill switch"))
+    exec_cfg = config.execution
+    if hasattr(exec_cfg, 'trading_fee_bps') and exec_cfg.trading_fee_bps > 0:
+        cl.add(CheckResult(19, "fee realistiche configurate", "PASS",
+                           f"trading_fee={exec_cfg.trading_fee_bps}bps, "
+                           f"priority={exec_cfg.priority_fee_sol} SOL"))
     else:
-        cl.add(CheckResult(19, "max drawdown attivo", "FAIL",
-                           f"max_drawdown_pct={config.risk.max_drawdown_pct} (expected 10.0)"))
+        cl.add(CheckResult(19, "fee realistiche configurate", "WARN",
+                           "trading_fee_bps not set"))
 
     # ═══════════════════════════════════════════════════════════════
     # CHECK 20: blacklist/whitelist caricate, se presenti

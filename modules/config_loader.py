@@ -27,6 +27,9 @@ class ExecutionConfig:
     max_signal_age_ms: int
     slippage_model: str
     default_slippage_bps: int
+    min_position_usd: float = 2.0
+    trading_fee_bps: int = 30
+    priority_fee_sol: float = 0.0005
 
 
 @dataclass(frozen=True)
@@ -35,8 +38,6 @@ class RiskConfig:
     max_total_exposure_pct: float
     max_open_positions: int
     max_trades_per_hour: int
-    max_daily_loss_pct: float
-    max_drawdown_pct: float
     max_slippage_bps: int
     max_price_impact_bps: int
     min_liquidity_usd: float
@@ -45,7 +46,6 @@ class RiskConfig:
     allow_short: bool
     stop_loss_pct: float
     trailing_take_profit_pct: float
-    warning_drawdown_pct: float
 
 
 @dataclass(frozen=True)
@@ -119,6 +119,14 @@ class MonitoringConfig:
 
 
 @dataclass(frozen=True)
+class WebDashboardConfig:
+    enabled: bool = True
+    host: str = "0.0.0.0"
+    port: int = 8080
+    auto_refresh_seconds: int = 5
+
+
+@dataclass(frozen=True)
 class Config:
     """Immutable master configuration. Created once at startup."""
     paper_account: PaperAccountConfig
@@ -129,6 +137,7 @@ class Config:
     token_safety: TokenSafetyConfig
     api: ApiConfig
     monitoring: MonitoringConfig
+    web_dashboard: WebDashboardConfig = WebDashboardConfig()
 
 
 class ConfigValidationError(Exception):
@@ -215,6 +224,9 @@ def load_config(config_path: str = "config.yaml") -> Config:
             max_signal_age_ms=int(ex_raw["max_signal_age_ms"]),
             slippage_model=str(ex_raw["slippage_model"]),
             default_slippage_bps=int(ex_raw["default_slippage_bps"]),
+            min_position_usd=float(ex_raw.get("min_position_usd", 2.0)),
+            trading_fee_bps=int(ex_raw.get("trading_fee_bps", 30)),
+            priority_fee_sol=float(ex_raw.get("priority_fee_sol", 0.0005)),
         )
 
         r_raw = raw["risk"]
@@ -223,8 +235,6 @@ def load_config(config_path: str = "config.yaml") -> Config:
             max_total_exposure_pct=float(r_raw["max_total_exposure_pct"]),
             max_open_positions=int(r_raw["max_open_positions"]),
             max_trades_per_hour=int(r_raw["max_trades_per_hour"]),
-            max_daily_loss_pct=float(r_raw["max_daily_loss_pct"]),
-            max_drawdown_pct=float(r_raw["max_drawdown_pct"]),
             max_slippage_bps=int(r_raw["max_slippage_bps"]),
             max_price_impact_bps=int(r_raw["max_price_impact_bps"]),
             min_liquidity_usd=float(r_raw["min_liquidity_usd"]),
@@ -233,7 +243,6 @@ def load_config(config_path: str = "config.yaml") -> Config:
             allow_short=bool(r_raw["allow_short"]),
             stop_loss_pct=float(r_raw["stop_loss_pct"]),
             trailing_take_profit_pct=float(r_raw["trailing_take_profit_pct"]),
-            warning_drawdown_pct=float(r_raw["warning_drawdown_pct"]),
         )
 
         wd_raw = raw["wallet_discovery"]
@@ -297,6 +306,14 @@ def load_config(config_path: str = "config.yaml") -> Config:
             graceful_shutdown_timeout_seconds=int(m_raw["graceful_shutdown_timeout_seconds"]),
         )
 
+        wd_raw = raw.get("web_dashboard", {})
+        web_dashboard = WebDashboardConfig(
+            enabled=wd_raw.get("enabled", True),
+            host=wd_raw.get("host", "0.0.0.0"),
+            port=int(wd_raw.get("port", 8080)),
+            auto_refresh_seconds=int(wd_raw.get("auto_refresh_seconds", 5)),
+        )
+
     except KeyError as e:
         raise ConfigValidationError(f"Missing required config key: {e}")
     except (ValueError, TypeError) as e:
@@ -311,4 +328,5 @@ def load_config(config_path: str = "config.yaml") -> Config:
         token_safety=token_safety,
         api=api,
         monitoring=monitoring,
+        web_dashboard=web_dashboard,
     )

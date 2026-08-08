@@ -154,17 +154,6 @@ class KillSwitch:
             return True
         return False
 
-    async def check_drawdown(self, current_drawdown_pct: float) -> bool:
-        """Check if drawdown exceeds threshold."""
-        if current_drawdown_pct >= self.config.risk.max_drawdown_pct:
-            await self.trigger(
-                f"AUTOMATIC_DRAWDOWN_KILL",
-                {"drawdown_pct": current_drawdown_pct,
-                 "threshold_pct": self.config.risk.max_drawdown_pct}
-            )
-            return True
-        return False
-
     async def trigger(self, reason: str, extra: Optional[dict] = None):
         """Trigger the kill switch."""
         if self._is_triggered:
@@ -354,8 +343,6 @@ th {{ color: #00ff88; }}
 <h2>Risk Parameters</h2>
 <div class="metric">Max Risk/Trade: {self.config.risk.max_risk_per_trade_pct}%</div>
 <div class="metric">Max Exposure: {self.config.risk.max_total_exposure_pct}%</div>
-<div class="metric">Max Drawdown (Kill): {self.config.risk.max_drawdown_pct}%</div>
-<div class="metric">Max Daily Loss: {self.config.risk.max_daily_loss_pct}%</div>
 
 <h2>Recent Trades (last 20)</h2>
 <table>
