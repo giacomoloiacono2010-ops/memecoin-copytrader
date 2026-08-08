@@ -1,11 +1,7 @@
 # Memecoin CopyTrader - Paper Trading Bot
-# Python 3.11+ required
 
 # HTTP client (async)
 aiohttp>=3.9.0
-
-# Data processing
-pydantic>=2.5.0
 
 # Database
 aiosqlite>=0.19.0
@@ -13,14 +9,13 @@ aiosqlite>=0.19.0
 # Configuration
 pyyaml>=6.0.1
 
-# Logging & Reports
+# Logging
 rich>=13.7.0
+
+# Reports
 jinja2>=3.1.2
 
-# Testing
+# Tests
 pytest>=7.4.0
 pytest-asyncio>=0.23.0
 pytest-cov>=4.1.0
-
-# NO crypto SDKs - no solana-py, no solders, no web3
-# This is paper trading only
