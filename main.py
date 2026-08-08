@@ -32,6 +32,7 @@ from modules.monitoring import (
     StructuredLogger, KillSwitch, HealthChecker,
     ReportGenerator, RealTransactionBlocker
 )
+from modules.dashboard import WebDashboard
 
 
 class MemecoinCopyTrader:
@@ -67,6 +68,7 @@ class MemecoinCopyTrader:
         self.copy_engine: CopyEngineService = None
         self.health_checker: HealthChecker = None
         self.reporter: ReportGenerator = None
+        self.dashboard: WebDashboard = None
         self._is_shutting_down = False
         self._start_time = 0.0
 
@@ -147,6 +149,14 @@ class MemecoinCopyTrader:
         # Initialize reporting
         self.health_checker = HealthChecker(self.config, self.logger)
         self.reporter = ReportGenerator(self.config, self.logger)
+
+        # Initialize web dashboard
+        self.dashboard = WebDashboard(
+            host=self.config.get("web_dashboard", {}).get("host", "0.0.0.0"),
+            port=self.config.get("web_dashboard", {}).get("port", 8080),
+        )
+        self.dashboard.kill_callback = self._signal_shutdown
+        await self.dashboard.start()
 
         # Register kill switch callbacks
         self.kill_switch.on_kill(self._graceful_shutdown_callback)
@@ -319,6 +329,23 @@ class MemecoinCopyTrader:
                             kill_switch_reason=self.kill_switch.trigger_reason,
                         )
                         self.health_checker.log_health(health)
+
+                        # Update web dashboard
+                        self.dashboard.update(
+                            balance=self.paper_account.balance,
+                            positions=self.paper_account.open_positions_count,
+                            exposure=self.paper_account.total_exposure_pct(prices),
+                            trades_today=self.paper_account.daily_trades,
+                            daily_pnl=self.paper_account.daily_pnl_pct(pv),
+                            position_list=[
+                                {"name": pos.token_name[:20], "pnl": pos.unrealized_pnl}
+                                for pos in self.paper_account.positions.values()
+                            ],
+                            recent_trades=[
+                                {"token": t.token_name[:15], "side": t.side, "qty": f"{t.qty:.2f}", "pnl": t.pnl_usd}
+                                for t in self.paper_account.trade_history[-10:]
+                            ],
+                        )
                     except Exception as e:
                         self.logger.log_error({
                             "action": "HEALTH_CHECK_ERROR",
@@ -440,6 +467,8 @@ class MemecoinCopyTrader:
         await self.paper_account.save_state()
         await self.paper_account.close()
         await self.dex_api.close()
+        if self.dashboard:
+            await self.dashboard.stop()
 
         uptime = time.time() - self._start_time
         self.logger.log_state_change({
